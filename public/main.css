@@ -102,3 +102,12 @@ h1 {
   font-size: 18px;
   color: #888;
 }
+
+#suggestions {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#suggestions li:hover {
+  background-color: #f8f9fa;
+}
