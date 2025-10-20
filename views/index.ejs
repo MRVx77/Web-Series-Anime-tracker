@@ -46,7 +46,7 @@
     <div class="col">
       <div class="card h-100 shadow-sm">
         <img
-          src="<%= show.cover_url %>"
+          src="<%= show.cover_url || 'https://via.placeholder.com/300x450?text=No+Image' %>"
           class="card-img-top"
           alt="<%= show.title %>"
         />

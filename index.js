@@ -77,7 +77,58 @@ app.get("/search", async (req, res) => {
   }
 });
 
-app.post("/add", async (req, res) => {});
+app.post("/add", async (req, res) => {
+  const { title, cover_url, type } = req.body;
+
+  try {
+    const exisiting = await db.query("SELECT * FROM shows WHERE title = $1", [
+      title,
+    ]);
+    if (exisiting.rows.length > 0) {
+      return res.json({ success: false, message: "show already exists" });
+    }
+
+    let rating = null;
+    let release_year = null;
+
+    if (type === "Anime") {
+      const animeRes = await axios.get(
+        `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`
+      );
+      const anime = animeRes.data.data[0];
+
+      if (anime) {
+        rating = anime.score || null;
+        release_year = anime.aired?.from
+          ? parseInt(anime.aired.from.slice(0, 4))
+          : null;
+      }
+    } else {
+      const tmdbKey = process.env.TMDB_API_KEY;
+      const tmbdRes = await axios.get(
+        `https://api.themoviedb.org/3/search/tv?api_key=${tmdbKey}&query=${encodeURIComponent(
+          title
+        )}&page=1`
+      );
+      const series = tmbdRes.data.results[0];
+      if (series) {
+        rating = series.vote_average ? series.vote_average.toFixed(1) : null;
+        release_year = series.first_air_date
+          ? parseInt(series.first_air_date.slice(0, 4))
+          : null;
+      }
+    }
+    await db.query(
+      `INSERT INTO shows(title, cover_url, type, rating, release_year, date_added) VALUES($1, $2, $3, $4, $5, NOW())`,
+      [title, cover_url, type, rating, release_year]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

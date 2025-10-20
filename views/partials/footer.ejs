@@ -53,9 +53,34 @@
               li.appendChild(img);
               li.appendChild(span);
 
-              li.addEventListener('click', () => {
+              li.addEventListener('click', async () => {
                 searchInput.value = item.title;
                 suggestions.style.display = 'none';
+
+                const type = typeSelect.value;
+
+                // Send the clicked item to backend
+                try {
+                  const response = await fetch('/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      title: item.title,
+                      cover_url: item.cover,
+                      type: type,
+                    }),
+                  });
+
+                  const result = await response.json();
+                  if (result.success) {
+                    alert(`${item.title} added to your list!`);
+                    location.reload(); // optional – reload page to show new item
+                  } else {
+                    alert('Already added or failed to add.');
+                  }
+                } catch (err) {
+                  console.error('Error adding show:', err);
+                }
               });
 
               suggestions.appendChild(li);
