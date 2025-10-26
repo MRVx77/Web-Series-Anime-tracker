@@ -6,19 +6,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.set("view engine", "ejs");
 app.set("views", "./views");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+//url way for env -> postgresql://user:password@host:port/database
 const db = new pg.Client({
-  user: "postgres",
-  host: "localhost",
-  database: "webseriestracker",
-  password: "mrv7777",
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
 });
 
 db.connect();
