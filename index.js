@@ -77,6 +77,56 @@ app.get("/search", async (req, res) => {
   }
 });
 
+app.get("/add", async (req, res) => {
+  const query = req.query.q;
+  if (!query) {
+    return res.redirect("/");
+  }
+
+  const tmdbKey = process.env.TMDB_API_KEY;
+
+  try {
+    const [animeRes, seriesRes] = await Promise.all([
+      axios.get(
+        `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=10`
+      ),
+      axios.get(
+        `https://api.themoviedb.org/3/search/tv?api_key=${tmdbKey}&query=${encodeURIComponent(
+          query
+        )}&page=1`
+      ),
+    ]);
+
+    const animeResults = animeRes.data.data.map((a) => ({
+      title: a.title,
+      image:
+        a.images?.jpg?.large_image_url ||
+        a.images?.jpg?.image_url ||
+        "https://via.placeholder.com/300x450?text=No+Image",
+      type: "Anime",
+      rating: a.score || "N/A",
+      year: a.year || "N/A",
+    }));
+
+    const seriesResults = seriesRes.data.results.map((s) => ({
+      title: s.name,
+      image: s.poster_path
+        ? `https://image.tmdb.org/t/p/w300${s.poster_path}`
+        : "/no-image.jpg",
+      type: "WebSeries",
+      rating: s.vote_average?.toFixed(1) || "N/A",
+      year: s.first_air_date ? s.first_air_date.slice(0, 4) : "N/A",
+    }));
+
+    const results = [...animeResults, ...seriesResults];
+
+    res.render("add.ejs", { results });
+  } catch (err) {
+    console.error(err);
+    res.render("add.ejs", { results: [] });
+  }
+});
+
 app.post("/add", async (req, res) => {
   const { title, cover_url, type } = req.body;
 
@@ -85,7 +135,8 @@ app.post("/add", async (req, res) => {
       title,
     ]);
     if (exisiting.rows.length > 0) {
-      return res.json({ success: false, message: "show already exists" });
+      console.log("Show already exists:", title);
+      return res.redirect("/");
     }
 
     let rating = null;
@@ -123,10 +174,10 @@ app.post("/add", async (req, res) => {
       [title, cover_url, type, rating, release_year]
     );
 
-    res.json({ success: true });
+    res.redirect("/");
   } catch (err) {
     console.error(err);
-    res.json({ success: false });
+    res.redirect("/");
   }
 });
 
