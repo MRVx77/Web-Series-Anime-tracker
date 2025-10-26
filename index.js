@@ -130,6 +130,18 @@ app.post("/add", async (req, res) => {
   }
 });
 
+app.post("/delete/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await db.query("DELETE FROM shows WHERE id = $1", [id]);
+    res.redirect("/");
+  } catch (err) {
+    console.error(err);
+    res.send("Error deleting show");
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
