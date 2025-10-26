@@ -16,6 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 //url way for env -> postgresql://user:password@host:port/database
 const db = new pg.Client({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // important for cloud PostgreSQL
+  },
 });
 
 db.connect();
