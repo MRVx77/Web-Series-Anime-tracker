@@ -174,10 +174,10 @@ app.post("/add", async (req, res) => {
       [title, cover_url, type, rating, release_year]
     );
 
-    res.redirect("/");
+    res.redirect(req.get("referer") || "/");
   } catch (err) {
     console.error(err);
-    res.redirect("/");
+    res.redirect(req.get("referer") || "/");
   }
 });
 
