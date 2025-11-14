@@ -136,6 +136,10 @@ app.post("/add", async (req, res) => {
     ]);
     if (exisiting.rows.length > 0) {
       console.log("Show already exists:", title);
+      if (req.headers["content-type"]?.includes("application/json")) {
+        return res.json({ success: false, message: "exists" });
+      }
+
       return res.redirect("/");
     }
 
@@ -174,10 +178,20 @@ app.post("/add", async (req, res) => {
       [title, cover_url, type, rating, release_year]
     );
 
-    res.redirect(req.get("referer") || "/");
+    // If request is AJAX → send JSON
+    if (req.headers["content-type"] === "application/json") {
+      return res.json({ success: true });
+    }
+
+    res.redirect("/");
   } catch (err) {
     console.error(err);
-    res.redirect(req.get("referer") || "/");
+    // If request is AJAX → send JSON
+    if (req.headers["content-type"] === "application/json") {
+      return res.json({ success: true });
+    }
+
+    res.redirect("/");
   }
 });
 
